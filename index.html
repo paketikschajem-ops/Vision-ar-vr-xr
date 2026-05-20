@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ VOLT CLICKER</title>
+<!-- CrazyGames SDK — загружается первым, до кода игры -->
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #050810;
+  --bg-panel: #0d1526;
+  --accent: #00d4ff;
+  --accent2: #7b2fff;
+  --gold: #ffd700;
+  --text: #c8e0f4;
+  --text-dim: #4a6580;
+  --success: #00ff9d;
+  --panel-border: rgba(0, 212, 255, 0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123,47,255,0.08) 0%, transparent 70%);
+  top: -200px; left: -200px;
+  pointer-events: none;
+  z-index: 0;
+  animation: bgPulse 6s ease-in-out infinite;
+}
+
+@keyframes bgPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* === LAYOUT === */
+#app {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  grid-template-rows: auto 1fr;
+  gap: 20px;
+  min-height: 100vh;
+}
+
+/* === HEADER === */
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(0,212,255,0.5));
+  flex-shrink: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stats-bar { display: flex; gap: 28px; align-items: center; }
+.stat-item { text-align: right; }
+
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stat-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* === CONTROL BUTTONS (music + lang) === */
+.ctrl-group { display: flex; gap: 6px; align-items: center; }
+
+.ctrl-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ctrl-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,212,255,0.06);
+}
+
+.ctrl-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,212,255,0.08);
+  box-shadow: 0 0 10px rgba(0,212,255,0.2);
+}
+
+/* Анимированный эквалайзер */
+.eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.eq-bar {
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: eqAnim 0.6s ease-in-out infinite alternate;
+}
+
+.eq-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
+.eq-bar:nth-child(2) { height: 80%; animation-delay: 0.15s; }
+.eq-bar:nth-child(3) { height: 55%; animation-delay: 0.3s; }
+.eq-bar:nth-child(4) { height: 90%; animation-delay: 0.1s; }
+
+@keyframes eqAnim {
+  from { transform: scaleY(0.4); }
+  to   { transform: scaleY(1); }
+}
+
+.eq-bar.paused { animation-play-state: paused; transform: scaleY(0.3); }
+
+/* === CLICK ZONE === */
+.click-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 40px 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.click-zone::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  animation: scanline 3s linear infinite;
+}
+
+@keyframes scanline {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.score-display { text-align: center; }
+
+.score-number {
+  font-family: 'Orbitron', monospace;
+  font-size: 3rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(0,212,255,0.8), 0 0 60px rgba(0,212,255,0.4);
+  line-height: 1;
+  transition: transform 0.1s;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.per-second {
+  font-size: 0.9rem;
+  color: var(--success);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* === CLICK BUTTON === */
+.click-btn-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: rotate 4s linear infinite;
+  pointer-events: none;
+}
+
+.ring-1 {
+  width: 210px; height: 210px;
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation-duration: 3s;
+}
+
+.ring-2 {
+  width: 240px; height: 240px;
+  border-bottom-color: var(--accent2);
+  border-left-color: var(--accent2);
+  animation-direction: reverse;
+  animation-duration: 5s;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+#clickBtn {
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 35%, #1a2a4a, #070d1f);
+  box-shadow:
+    0 0 0 3px rgba(0,212,255,0.3),
+    0 0 30px rgba(0,212,255,0.3),
+    inset 0 0 40px rgba(0,212,255,0.05);
+  position: relative;
+  z-index: 1;
+  transition: transform 0.08s, box-shadow 0.08s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+#clickBtn:active, #clickBtn.clicked {
+  transform: scale(0.92);
+  box-shadow:
+    0 0 0 3px rgba(0,212,255,0.6),
+    0 0 60px rgba(0,212,255,0.6),
+    inset 0 0 60px rgba(0,212,255,0.15);
+}
+
+.btn-icon {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 10px rgba(0,212,255,0.8));
+}
+
+.btn-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+/* === FLOATING NUMBERS === */
+.float-num {
+  position: fixed;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent);
+  pointer-events: none;
+  z-index: 9999;
+  animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(0.7); }
+}
+
+/* === LEVEL === */
+.level-section { width: 100%; padding: 0 20px; }
+
+.level-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.level-badge { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--gold); }
+.level-next  { color: var(--text-dim); }
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* === UPGRADES PANEL === */
+.upgrades-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--panel-border);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header span { color: var(--accent); }
+
+.upgrades-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent2) transparent;
+}
+
+.upgrades-list::-webkit-scrollbar { width: 4px; }
+.upgrades-list::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 2px; }
+
+/* === UPGRADE CARDS === */
+.upgrade-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.upgrade-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(0,212,255,0.04));
+  pointer-events: none;
+}
+
+.upgrade-card:hover:not(.locked) {
+  border-color: rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.04);
+  transform: translateX(4px);
+}
+
+.upgrade-card.affordable {
+  border-color: rgba(0,212,255,0.25);
+  box-shadow: inset 0 0 20px rgba(0,212,255,0.03);
+}
+
+.upgrade-card.affordable .upgrade-icon { filter: drop-shadow(0 0 8px currentColor); }
+.upgrade-card.locked  { opacity: 0.4; cursor: not-allowed; }
+
+.upgrade-card.bought {
+  border-color: rgba(0,255,157,0.25);
+  background: rgba(0,255,157,0.03);
+  cursor: default;
+}
+
+.upgrade-card.buying { animation: buyPulse 0.3s ease; }
+
+@keyframes buyPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.97); background: rgba(0,212,255,0.1); }
+  100% { transform: scale(1); }
+}
+
+.upgrade-icon { font-size: 2rem; line-height: 1; min-width: 40px; text-align: center; }
+.upgrade-info { flex: 1; min-width: 0; }
+.upgrade-name { font-weight: 600; font-size: 0.95rem; color: #fff; margin-bottom: 3px; }
+.upgrade-desc { font-size: 0.73rem; color: var(--text-dim); line-height: 1.3; }
+.upgrade-count { font-size: 0.7rem; color: var(--accent2); font-weight: 600; margin-top: 3px; }
+.upgrade-right { text-align: right; min-width: 70px; }
+
+.upgrade-cost {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.upgrade-cost.cant-afford { color: var(--text-dim); }
+.upgrade-owned-badge { font-size: 0.65rem; color: var(--success); letter-spacing: 0.05em; font-weight: 600; }
+
+/* === TABS === */
+.tabs { display: flex; gap: 2px; padding: 10px 12px 0; }
+
+.tab {
+  flex: 1;
+  padding: 8px 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text); }
+
+/* === ACHIEVEMENTS === */
+.achievements-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent2) transparent;
+}
+
+.achievement {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.achievement.unlocked {
+  border-color: rgba(255,215,0,0.3);
+  background: rgba(255,215,0,0.05);
+  box-shadow: 0 0 15px rgba(255,215,0,0.1);
+}
+
+.achievement-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+  filter: grayscale(1);
+  transition: filter 0.3s;
+}
+
+.achievement.unlocked .achievement-icon { filter: none; }
+
+.achievement-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  line-height: 1.2;
+}
+
+.achievement.unlocked .achievement-name { color: var(--gold); }
+
+/* === TOASTS === */
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--bg-panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  min-width: 220px;
+  max-width: 300px;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.toast.achievement { border-color: rgba(255,215,0,0.4); }
+.toast.purchase    { border-color: rgba(0,212,255,0.4); }
+
+.toast-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.toast.achievement .toast-title { color: var(--gold); }
+.toast.purchase    .toast-title { color: var(--accent); }
+
+.toast-body { font-size: 0.9rem; font-weight: 600; color: #fff; }
+
+@keyframes toastIn  { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+/* === RESET BUTTON === */
+.reset-btn {
+  margin: 12px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid rgba(255,100,100,0.2);
+  border-radius: 8px;
+  color: rgba(255,100,100,0.5);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.reset-btn:hover {
+  border-color: rgba(255,100,100,0.5);
+  color: rgba(255,100,100,0.8);
+  background: rgba(255,100,100,0.05);
+}
+
+/* === TOP BANNER === */
+#top-banner {
+  position: relative;
+  z-index: 100;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(90deg,
+    #020408 0%,
+    #050d1a 20%,
+    #07111f 50%,
+    #050d1a 80%,
+    #020408 100%);
+  border-bottom: 1px solid rgba(0,212,255,0.12);
+}
+
+/* Анимированная неоновая полоса сверху */
+#top-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--accent) 30%,
+    var(--accent2) 50%,
+    var(--accent) 70%,
+    transparent 100%);
+  animation: bannerScan 4s linear infinite;
+}
+
+@keyframes bannerScan {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Боковые градиентные маски для бегущей строки */
+#top-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #020408 0%, transparent 8%, transparent 92%, #020408 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.banner-inner {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  position: relative;
+}
+
+/* Статичный левый блок с лого-сайтом */
+.banner-site {
+  position: absolute;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: linear-gradient(90deg, #020408 70%, transparent 100%);
+  padding: 0 32px 0 16px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.banner-bolt {
+  font-size: 0.85rem;
+  margin-right: 5px;
+  animation: boltPulse 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px var(--accent));
+}
+
+@keyframes boltPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+
+.banner-url {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-decoration: none;
+  text-shadow: 0 0 12px rgba(0,212,255,0.7), 0 0 24px rgba(0,212,255,0.3);
+  transition: text-shadow 0.3s;
+  white-space: nowrap;
+}
+
+.banner-url:hover {
+  text-shadow: 0 0 18px rgba(0,212,255,1), 0 0 36px rgba(0,212,255,0.6);
+}
+
+.banner-separator {
+  width: 1px;
+  height: 16px;
+  background: rgba(0,212,255,0.25);
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+/* Бегущая строка (marquee) */
+.banner-ticker-wrap {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 200px; /* отступ под .banner-site */
+}
+
+.banner-ticker {
+  display: flex;
+  gap: 0;
+  animation: tickerMove 35s linear infinite;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+@keyframes tickerMove {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 28px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ticker-item .ti-icon {
+  font-size: 0.85rem;
+}
+
+.ticker-item.accent  { color: var(--accent);  text-shadow: 0 0 8px rgba(0,212,255,0.5); }
+.ticker-item.accent2 { color: var(--accent2); text-shadow: 0 0 8px rgba(123,47,255,0.5); }
+.ticker-item.gold    { color: var(--gold);    text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+.ticker-item.success { color: var(--success); text-shadow: 0 0 8px rgba(0,255,157,0.5); }
+
+.ticker-dot {
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.4;
+  margin: 0 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  #app { grid-template-columns: 1fr; padding: 10px; gap: 10px; min-height: auto; }
+  .banner-site { padding: 0 20px 0 12px; }
+  .banner-url  { font-size: 0.6rem; }
+  .banner-ticker-wrap { padding-left: 160px; }
+  .ticker-item { font-size: 0.7rem; padding: 0 20px; }
+
+  header { padding: 10px 14px; gap: 10px; }
+  .logo  { font-size: 1.2rem; }
+
+  .header-right { width: 100%; justify-content: space-between; }
+  .stats-bar    { gap: 16px; }
+
+  .score-number { font-size: 2.2rem; }
+  #clickBtn     { width: 150px; height: 150px; }
+  .ring-1       { width: 175px; height: 175px; }
+  .ring-2       { width: 200px; height: 200px; }
+  .btn-icon     { font-size: 2.4rem; }
+  .click-zone   { padding: 24px 16px; gap: 24px; }
+  .upgrades-panel { max-height: 420px; }
+}
+
+@media (max-width: 400px) {
+  .score-number { font-size: 1.8rem; }
+  #clickBtn { width: 130px; height: 130px; }
+  .ring-1   { width: 155px; height: 155px; }
+  .ring-2   { width: 180px; height: 180px; }
+  .btn-icon { font-size: 2rem; }
+  .ctrl-btn { padding: 5px 8px; font-size: 0.72rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================
+     TOP BANNER — сайт + бегущая строка
+     ============================ -->
+<div id="top-banner">
+  <div class="banner-inner">
+
+    <!-- Левый блок: сайт -->
+    <div class="banner-site">
+      <span class="banner-bolt">⚡</span>
+      <a class="banner-url" href="https://voltclickergame.netlify.app" target="_blank" rel="noopener">
+        voltclickergame.netlify.app
+      </a>
+      <div class="banner-separator"></div>
+    </div>
+
+    <!-- Бегущая строка -->
+    <div class="banner-ticker-wrap">
+      <div class="banner-ticker" id="bannerTicker">
+        <!-- Содержимое генерируется JS с учётом языка -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ШАПКА -->
+  <header>
+    <div class="logo">⚡ VOLT</div>
+
+    <div class="header-right">
+      <!-- Статистика -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-label" id="lbl_totalEarned">Всего заработано</div>
+          <div class="stat-value" id="totalEarned">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label" id="lbl_clicks">Клики</div>
+          <div class="stat-value" id="totalClicks">0</div>
+        </div>
+      </div>
+
+      <!-- Кнопки управления -->
+      <div class="ctrl-group">
+        <!-- Музыка -->
+        <button class="ctrl-btn" id="musicBtn" onclick="toggleMusic()">
+          <div class="eq" id="eqViz">
+            <div class="eq-bar paused"></div>
+            <div class="eq-bar paused"></div>
+            <div class="eq-bar paused"></div>
+            <div class="eq-bar paused"></div>
+          </div>
+          <span id="musicBtnLabel">OFF</span>
+        </button>
+
+        <!-- Язык -->
+        <button class="ctrl-btn active" id="langBtn" onclick="toggleLang()">
+          <span id="langBtnLabel">🇷🇺 RU</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ЗОНА КЛИКА -->
+  <div class="click-zone">
+    <div class="score-display">
+      <div class="score-number" id="scoreDisplay">0</div>
+      <div class="score-label" id="voltLabel">⚡ вольт</div>
+      <div class="per-second"  id="perSecond">+0 / сек</div>
+    </div>
+
+    <div class="click-btn-wrapper">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <button id="clickBtn">
+        <span class="btn-icon">⚡</span>
+        <span class="btn-label" id="clickBtnLabel">Зарядить</span>
+      </button>
+    </div>
+
+    <div class="level-section">
+      <div class="level-info">
+        <span class="level-badge" id="levelBadge">Уровень 1</span>
+        <span class="level-next"  id="levelNext">До след.: 100</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПАНЕЛЬ УЛУЧШЕНИЙ -->
+  <div class="upgrades-panel">
+    <div class="panel-header">
+      <span id="lbl_panelHeader">Улучшения</span>
+      <span id="panelTabLabel">Апгрейды</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabUpgrades"     onclick="switchTab('upgrades')">Апгрейды</button>
+      <button class="tab"        id="tabAchievements" onclick="switchTab('achievements')">Успехи</button>
+    </div>
+
+    <div class="upgrades-list"    id="upgradesList"></div>
+    <div class="achievements-grid" id="achievementsGrid" style="display:none"></div>
+
+    <button class="reset-btn" id="resetBtn" onclick="confirmReset()">⟳ Сбросить прогресс</button>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================
+     ЛОКАЛИЗАЦИЯ (RU / EN)
+     ============================ -->
+<script>
+/* Текущий язык */
+let currentLang = localStorage.getItem('voltclicker_lang') || 'ru';
+
+/* Словарь */
+const I18N = {
+  ru: {
+    totalEarned:    'Всего заработано',
+    clicks:         'Клики',
+    voltLabel:      '⚡ вольт',
+    perSec:         '/ сек',
+    levelWord:      'Уровень',
+    nextLevel:      'До след.:',
+    panelHeader:    'Улучшения',
+    upgradesTab:    'Апгрейды',
+    achTab:         'Успехи',
+    resetBtn:       '⟳ Сбросить прогресс',
+    clickBtnLabel:  'Зарядить',
+    resetConfirm:   'Сбросить весь прогресс? Это нельзя отменить.',
+    loadedTitle:    '💾 Загружено',
+    loadedBody:     'Прогресс восстановлен!',
+    resetTitle:     '🔄 Сброс',
+    resetBody:      'Прогресс сброшен',
+    boughtTitle:    '⚡ Куплено',
+    levelUpTitle:   '🌟 Уровень вверх!',
+    levelUpBody:    n => `Уровень ${n} достигнут!`,
+    achTitle:       '🏆 Достижение!',
+    owned:          'Куплено:',
+    needLevel:      '🔒 Нужен уровень',
+    maxed:          '✓ МАКС',
+    langLabel:      '🇷🇺 RU',
+    musicOn:        'ON',
+    musicOff:       'OFF',
+    B: ' млрд', M: ' млн', K: ' тыс',
+  },
+  en: {
+    totalEarned:    'Total earned',
+    clicks:         'Clicks',
+    voltLabel:      '⚡ volts',
+    perSec:         '/ sec',
+    levelWord:      'Level',
+    nextLevel:      'Next:',
+    panelHeader:    'Upgrades',
+    upgradesTab:    'Upgrades',
+    achTab:         'Achievements',
+    resetBtn:       '⟳ Reset progress',
+    clickBtnLabel:  'Charge',
+    resetConfirm:   'Reset all progress? This cannot be undone.',
+    loadedTitle:    '💾 Loaded',
+    loadedBody:     'Progress restored!',
+    resetTitle:     '🔄 Reset',
+    resetBody:      'Progress reset',
+    boughtTitle:    '⚡ Purchased',
+    levelUpTitle:   '🌟 Level up!',
+    levelUpBody:    n => `Level ${n} reached!`,
+    achTitle:       '🏆 Achievement!',
+    owned:          'Owned:',
+    needLevel:      '🔒 Need level',
+    maxed:          '✓ MAX',
+    langLabel:      '🇬🇧 EN',
+    musicOn:        'ON',
+    musicOff:       'OFF',
+    B: 'B', M: 'M', K: 'K',
+  }
+};
+
+/* Получить строку */
+function t(key, ...args) {
+  const v = I18N[currentLang][key];
+  return typeof v === 'function' ? v(...args) : (v || key);
+}
+
+/* Применить переводы к статичным элементам */
+function applyLang() {
+  document.documentElement.lang    = currentLang;
+  document.getElementById('lbl_totalEarned').textContent = t('totalEarned');
+  document.getElementById('lbl_clicks').textContent      = t('clicks');
+  document.getElementById('voltLabel').textContent       = t('voltLabel');
+  document.getElementById('lbl_panelHeader').textContent = t('panelHeader');
+  document.getElementById('clickBtnLabel').textContent   = t('clickBtnLabel');
+  document.getElementById('resetBtn').textContent        = t('resetBtn');
+  document.getElementById('langBtnLabel').textContent    = t('langLabel');
+  document.getElementById('tabUpgrades').textContent     = t('upgradesTab');
+  document.getElementById('tabAchievements').textContent = t('achTab');
+  document.getElementById('musicBtnLabel').textContent   = musicPlaying ? t('musicOn') : t('musicOff');
+  // Перерисовываем динамику
+  updateUI();
+  if (currentTab === 'achievements') renderAchievements();
+  else renderUpgrades();
+  renderTicker();
+  if (typeof updateRewardedBtnLabel === 'function') updateRewardedBtnLabel();
+}
+
+/* === БЕГУЩАЯ СТРОКА БАННЕРА === */
+/* Элементы дублируются (×2) для бесшовного loop-эффекта */
+function renderTicker() {
+  const items = currentLang === 'ru' ? [
+    { cls: 'accent',  icon: '⚡', text: 'Нажимай и заряжай' },
+    { cls: '',        icon: '🔋', text: 'Покупай улучшения' },
+    { cls: 'accent2', icon: '🚀', text: 'Автодоход каждую секунду' },
+    { cls: 'gold',    icon: '🏆', text: 'Открывай достижения' },
+    { cls: 'success', icon: '🌌', text: 'Термоядерный синтез ждёт' },
+    { cls: '',        icon: '👑', text: 'Достигни 10-го уровня' },
+    { cls: 'accent',  icon: '💎', text: 'Собери 1 000 000 вольт' },
+    { cls: 'accent2', icon: '⚛️', text: 'Запусти ядерный реактор' },
+    { cls: 'gold',    icon: '🎵', text: 'Включи ambient-музыку' },
+    { cls: '',        icon: '☀️', text: 'Солнечная панель онлайн' },
+  ] : [
+    { cls: 'accent',  icon: '⚡', text: 'Click & charge' },
+    { cls: '',        icon: '🔋', text: 'Buy upgrades' },
+    { cls: 'accent2', icon: '🚀', text: 'Auto income every second' },
+    { cls: 'gold',    icon: '🏆', text: 'Unlock achievements' },
+    { cls: 'success', icon: '🌌', text: 'Fusion Reactor awaits' },
+    { cls: '',        icon: '👑', text: 'Reach level 10' },
+    { cls: 'accent',  icon: '💎', text: 'Collect 1,000,000 volts' },
+    { cls: 'accent2', icon: '⚛️', text: 'Launch Nuclear Reactor' },
+    { cls: 'gold',    icon: '🎵', text: 'Enable ambient music' },
+    { cls: '',        icon: '☀️', text: 'Solar Panel online' },
+  ];
+
+  /* Дублируем для бесшовного скролла */
+  const allItems = [...items, ...items];
+  const ticker = document.getElementById('bannerTicker');
+  if (!ticker) return;
+
+  ticker.innerHTML = allItems.map(it => `
+    <span class="ticker-item ${it.cls}">
+      <span class="ti-icon">${it.icon}</span>${it.text}
+    </span>
+    <span class="ticker-dot"></span>
+  `).join('');
+}
+
+/* Переключить язык */
+function toggleLang() {
+  currentLang = currentLang === 'ru' ? 'en' : 'ru';
+  localStorage.setItem('voltclicker_lang', currentLang);
+  applyLang();
+}
+</script>
+
+<!-- ============================
+     ЗВУКИ + ФОНОВАЯ МУЗЫКА
+     ============================ -->
+<script>
+const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+/* Инициализируем AudioContext после первого касания */
+function initAudio() {
+  if (!audioCtx) audioCtx = new AudioCtxClass();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+/* --- Звук клика --- */
+function playClick() {
+  if (!audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'square';
+    o.frequency.setValueAtTime(800, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.07, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+    o.start(); o.stop(audioCtx.currentTime + 0.08);
+  } catch(e) {}
+}
+
+/* --- Звук покупки --- */
+function playBuy() {
+  if (!audioCtx) return;
+  try {
+    [300, 500, 700].forEach((freq, i) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      const t = audioCtx.currentTime + i * 0.07;
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.1, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      o.start(t); o.stop(t + 0.15);
+    });
+  } catch(e) {}
+}
+
+/* --- Звук достижения --- */
+function playAchievement() {
+  if (!audioCtx) return;
+  try {
+    [400, 600, 800, 1000].forEach((freq, i) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      const t = audioCtx.currentTime + i * 0.1;
+      o.type = 'triangle'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o.start(t); o.stop(t + 0.2);
+    });
+  } catch(e) {}
+}
+
+/* ===========================================
+   ФОНОВАЯ МУЗЫКА (процедурный ambient)
+   Полностью синтезируется через Web Audio API.
+   Никаких файлов не нужно.
+
+   Структура:
+   - Sub-drone  55 Гц  — низкий гул
+   - Pad 1     110 Гц  — основной слой
+   - Pad 2     165 Гц  — квинта (гармоник)
+   - Pad 3     220 Гц  — октава
+   - Каждый слой имеет медленное LFO-вибрато
+   - Конвольверный реверб для глубины
+   - Случайные тихие перкуссионные тики
+   =========================================== */
+
+let musicPlaying = false;
+let musicNodes   = [];
+let masterGain   = null;
+
+/* Строим реверб-импульс из белого шума */
+function buildReverb(ctx, secs, decay) {
+  const conv = ctx.createConvolver();
+  const len  = ctx.sampleRate * secs;
+  const buf  = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++)
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+  }
+  conv.buffer = buf;
+  return conv;
+}
+
+function startMusic() {
+  if (musicPlaying) return;
+  initAudio();
+  musicPlaying = true;
+
+  /* Мастер-гейн с плавным фейд-ином */
+  masterGain = audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.16, audioCtx.currentTime + 2.5);
+  masterGain.connect(audioCtx.destination);
+
+  /* Реверб */
+  const reverb     = buildReverb(audioCtx, 3, 2.8);
+  const reverbSend = audioCtx.createGain();
+  reverbSend.gain.value = 0.38;
+  reverb.connect(reverbSend);
+  reverbSend.connect(masterGain);
+
+  /* Хелпер: создаёт пад с вибрато-LFO */
+  function pad(freq, type, vol, lfoHz, lfoDepth) {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const lfo  = audioCtx.createOscillator();
+    const lfog = audioCtx.createGain();
+
+    lfo.frequency.value = lfoHz;
+    lfog.gain.value     = lfoDepth;
+    lfo.connect(lfog);
+    lfog.connect(osc.frequency);
+
+    osc.type          = type;
+    osc.frequency.value = freq;
+    gain.gain.value   = vol;
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+    gain.connect(reverb);
+
+    lfo.start(); osc.start();
+    musicNodes.push(osc, lfo);
+  }
+
+  /* Слои ambient */
+  pad(55,  'sine',     0.07, 0.07, 0.4);   /* sub drone         */
+  pad(110, 'sine',     0.055, 0.13, 1.0);  /* fundamental       */
+  pad(165, 'triangle', 0.04, 0.18, 0.9);   /* perfect fifth     */
+  pad(220, 'sine',     0.03, 0.11, 1.3);   /* octave            */
+  pad(275, 'sine',     0.018, 0.22, 0.7);  /* minor 7th colour  */
+
+  /* Случайные тихие "тики" — имитация электронного сердцебиения */
+  let pulseTimer;
+  function tick() {
+    if (!musicPlaying) return;
+    pulseTimer = setTimeout(() => {
+      if (!musicPlaying || !audioCtx) return;
+      try {
+        const dur = 0.04;
+        const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+        const d   = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++)
+          d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.25));
+        const src = audioCtx.createBufferSource();
+        const g   = audioCtx.createGain();
+        src.buffer = buf;
+        g.gain.value = 0.035;
+        src.connect(g);
+        g.connect(masterGain);
+        src.start();
+      } catch(e) {}
+      tick();
+    }, 1400 + Math.random() * 2800);
+  }
+  tick();
+
+  /* Сохраняем ссылку на таймер для остановки */
+  musicNodes.push({ _pulseStop: () => clearTimeout(pulseTimer) });
+  updateMusicBtn();
+}
+
+function stopMusic() {
+  if (!musicPlaying) return;
+  musicPlaying = false;
+
+  if (masterGain) {
+    masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+  }
+
+  setTimeout(() => {
+    musicNodes.forEach(n => {
+      try {
+        if (n._pulseStop) n._pulseStop();
+        else n.stop();
+      } catch(e) {}
+    });
+    musicNodes  = [];
+    masterGain  = null;
+  }, 1600);
+
+  updateMusicBtn();
+}
+
+function toggleMusic() {
+  initAudio();
+  musicPlaying ? stopMusic() : startMusic();
+}
+
+function updateMusicBtn() {
+  const btn   = document.getElementById('musicBtn');
+  const bars  = document.querySelectorAll('.eq-bar');
+  const label = document.getElementById('musicBtnLabel');
+
+  if (musicPlaying) {
+    btn.classList.add('active');
+    bars.forEach(b => b.classList.remove('paused'));
+    label.textContent = t('musicOn');
+  } else {
+    btn.classList.remove('active');
+    bars.forEach(b => b.classList.add('paused'));
+    label.textContent = t('musicOff');
+  }
+}
+</script>
+
+<!-- ============================
+     ИГРОВАЯ ЛОГИКА
+     ============================ -->
+<script>
+/* === СОСТОЯНИЕ === */
+let state = {
+  score: 0, totalEarned: 0, totalClicks: 0,
+  clickPower: 1, autoIncome: 0,
+  level: 1, levelProgress: 0,
+  upgrades: {}, achievements: {}
+};
+
+/* === УЛУЧШЕНИЯ (с локализацией) === */
+const UPGRADES = [
+  { id:'click1', icon:'🔋',
+    ru:{ name:'Суперконденсатор',     desc:'+1 вольт за клик' },
+    en:{ name:'Supercapacitor',       desc:'+1 volt per click' },
+    baseCost:10,     costMult:1.5, maxCount:50, type:'click', power:1,   unlockAt:0 },
+  { id:'click2', icon:'⚡',
+    ru:{ name:'Турбозаряд',           desc:'+5 вольт за клик' },
+    en:{ name:'Turbo Charge',         desc:'+5 volts per click' },
+    baseCost:100,    costMult:1.6, maxCount:30, type:'click', power:5,   unlockAt:2 },
+  { id:'click3', icon:'🌟',
+    ru:{ name:'Плазменный усилитель', desc:'+25 вольт за клик' },
+    en:{ name:'Plasma Amplifier',     desc:'+25 volts per click' },
+    baseCost:1000,   costMult:1.7, maxCount:20, type:'click', power:25,  unlockAt:4 },
+  { id:'click4', icon:'🔮',
+    ru:{ name:'Квантовый резонатор',  desc:'+150 вольт за клик' },
+    en:{ name:'Quantum Resonator',    desc:'+150 volts per click' },
+    baseCost:15000,  costMult:1.8, maxCount:15, type:'click', power:150, unlockAt:6 },
+  { id:'auto1', icon:'⚙️',
+    ru:{ name:'Мини-генератор',       desc:'+1 вольт/сек' },
+    en:{ name:'Mini Generator',       desc:'+1 volt/sec' },
+    baseCost:50,     costMult:1.5,  maxCount:99, type:'auto', power:1,   unlockAt:1 },
+  { id:'auto2', icon:'💨',
+    ru:{ name:'Ветрогенератор',       desc:'+5 вольт/сек' },
+    en:{ name:'Wind Generator',       desc:'+5 volts/sec' },
+    baseCost:500,    costMult:1.55, maxCount:50, type:'auto', power:5,   unlockAt:3 },
+  { id:'auto3', icon:'☀️',
+    ru:{ name:'Солнечная панель',     desc:'+20 вольт/сек' },
+    en:{ name:'Solar Panel',          desc:'+20 volts/sec' },
+    baseCost:3000,   costMult:1.6,  maxCount:30, type:'auto', power:20,  unlockAt:5 },
+  { id:'auto4', icon:'⚛️',
+    ru:{ name:'Ядерный реактор',      desc:'+100 вольт/сек' },
+    en:{ name:'Nuclear Reactor',      desc:'+100 volts/sec' },
+    baseCost:25000,  costMult:1.7,  maxCount:20, type:'auto', power:100, unlockAt:7 },
+  { id:'auto5', icon:'🌌',
+    ru:{ name:'Термоядерный синтез',  desc:'+500 вольт/сек' },
+    en:{ name:'Fusion Reactor',       desc:'+500 volts/sec' },
+    baseCost:200000, costMult:1.8,  maxCount:10, type:'auto', power:500, unlockAt:9 },
+];
+
+/* === ДОСТИЖЕНИЯ === */
+const ACHIEVEMENTS = [
+  { id:'click10',   icon:'👆', ru:'10 кликов',       en:'10 clicks',        condition: s => s.totalClicks >= 10 },
+  { id:'click100',  icon:'💪', ru:'100 кликов',      en:'100 clicks',       condition: s => s.totalClicks >= 100 },
+  { id:'click1000', icon:'🏆', ru:'1000 кликов',     en:'1000 clicks',      condition: s => s.totalClicks >= 1000 },
+  { id:'earn100',   icon:'⚡', ru:'100 вольт',        en:'100 volts',        condition: s => s.totalEarned >= 100 },
+  { id:'earn10k',   icon:'🔥', ru:'10 000 вольт',    en:'10,000 volts',     condition: s => s.totalEarned >= 10000 },
+  { id:'earn1m',    icon:'💎', ru:'1 000 000 вольт', en:'1,000,000 volts',  condition: s => s.totalEarned >= 1000000 },
+  { id:'level5',    icon:'🌟', ru:'Уровень 5',        en:'Level 5',          condition: s => s.level >= 5 },
+  { id:'level10',   icon:'👑', ru:'Уровень 10',       en:'Level 10',         condition: s => s.level >= 10 },
+  { id:'auto1st',   icon:'🤖', ru:'Первый автоклик', en:'First auto click', condition: s => s.autoIncome >= 1 },
+  { id:'auto100',   icon:'🚀', ru:'100/сек',          en:'100/sec',          condition: s => s.autoIncome >= 100 },
+];
+
+/* === УРОВНИ === */
+function levelThreshold(lvl) {
+  return Math.floor(100 * Math.pow(2.5, lvl - 1));
+}
+
+/* === СТОИМОСТЬ УЛУЧШЕНИЯ === */
+function upgradeCost(upg) {
+  return Math.floor(upg.baseCost * Math.pow(upg.costMult, state.upgrades[upg.id] || 0));
+}
+
+/* === ПЕРЕСЧЁТ ХАРАКТЕРИСТИК === */
+function recalcStats() {
+  let cp = 1, ai = 0;
+  UPGRADES.forEach(u => {
+    const n = state.upgrades[u.id] || 0;
+    if (n > 0) {
+      if (u.type === 'click') cp += u.power * n;
+      if (u.type === 'auto')  ai += u.power * n;
+    }
+  });
+  state.clickPower = cp;
+  state.autoIncome = ai;
+}
+
+/* === ФОРМАТИРОВАНИЕ ЧИСЕЛ === */
+function fmt(n) {
+  n = Math.floor(n);
+  if (n >= 1e9) return (n/1e9).toFixed(2) + t('B');
+  if (n >= 1e6) return (n/1e6).toFixed(2) + t('M');
+  if (n >= 1e3) return (n/1e3).toFixed(1) + t('K');
+  return n.toString();
+}
+
+/* === ОБНОВЛЕНИЕ UI === */
+function updateUI() {
+  document.getElementById('scoreDisplay').textContent = fmt(state.score);
+  document.getElementById('totalEarned').textContent  = fmt(state.totalEarned);
+  document.getElementById('totalClicks').textContent  = fmt(state.totalClicks);
+  document.getElementById('perSecond').textContent    = '+' + fmt(state.autoIncome) + ' ' + t('perSec');
+
+  const thr  = levelThreshold(state.level + 1);
+  const pct  = Math.min((state.levelProgress / thr) * 100, 100);
+  document.getElementById('levelBadge').textContent    = t('levelWord') + ' ' + state.level;
+  document.getElementById('levelNext').textContent     = t('nextLevel') + ' ' + fmt(thr - state.levelProgress);
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  renderUpgrades();
+}
+
+/* === РЕНДЕР КАРТОЧЕК УЛУЧШЕНИЙ === */
+function renderUpgrades() {
+  const list = document.getElementById('upgradesList');
+  list.innerHTML = '';
+
+  UPGRADES.forEach(upg => {
+    const count     = state.upgrades[upg.id] || 0;
+    const cost      = upgradeCost(upg);
+    const canAfford = state.score >= cost;
+    const maxed     = count >= upg.maxCount;
+    const locked    = state.level < upg.unlockAt;
+    const loc       = upg[currentLang];
+
+    const card = document.createElement('div');
+    card.className = 'upgrade-card' +
+      (maxed ? ' bought' : locked ? ' locked' : canAfford ? ' affordable' : '');
+
+    card.innerHTML = `
+      <div class="upgrade-icon">${upg.icon}</div>
+      <div class="upgrade-info">
+        <div class="upgrade-name">${loc.name}</div>
+        <div class="upgrade-desc">${loc.desc}</div>
+        ${count > 0
+          ? `<div class="upgrade-count">${t('owned')} ${count}/${upg.maxCount}</div>`
+          : ''}
+        ${locked
+          ? `<div class="upgrade-count" style="color:#7b2fff">${t('needLevel')} ${upg.unlockAt}</div>`
+          : ''}
+      </div>
+      <div class="upgrade-right">
+        ${maxed
+          ? `<div class="upgrade-owned-badge">${t('maxed')}</div>`
+          : locked
+            ? `<div class="upgrade-cost cant-afford">—</div>`
+            : `<div class="upgrade-cost ${canAfford ? '' : 'cant-afford'}">⚡${fmt(cost)}</div>`}
+      </div>`;
+
+    if (!maxed && !locked) card.addEventListener('click', () => buyUpgrade(upg));
+    list.appendChild(card);
+  });
+}
+
+/* === РЕНДЕР ДОСТИЖЕНИЙ === */
+function renderAchievements() {
+  const grid = document.getElementById('achievementsGrid');
+  grid.innerHTML = '';
+  ACHIEVEMENTS.forEach(ach => {
+    const unlocked = !!state.achievements[ach.id];
+    const div = document.createElement('div');
+    div.className = 'achievement' + (unlocked ? ' unlocked' : '');
+    div.innerHTML = `
+      <div class="achievement-icon">${ach.icon}</div>
+      <div class="achievement-name">${ach[currentLang]}</div>`;
+    grid.appendChild(div);
+  });
+}
+
+/* === ПОКУПКА УЛУЧШЕНИЯ === */
+function buyUpgrade(upg) {
+  const cost = upgradeCost(upg);
+  if (state.score < cost) return;
+
+  state.score -= cost;
+  state.upgrades[upg.id] = (state.upgrades[upg.id] || 0) + 1;
+  recalcStats(); updateUI(); save(); playBuy();
+  showToast('purchase', t('boughtTitle'), upg[currentLang].name);
+
+  const cards = document.querySelectorAll('.upgrade-card');
+  const idx   = UPGRADES.indexOf(upg);
+  if (cards[idx]) {
+    cards[idx].classList.add('buying');
+    setTimeout(() => cards[idx].classList.remove('buying'), 300);
+  }
+}
+
+/* === КЛИК === */
+function handleClick(e) {
+  initAudio();
+  const gained = state.clickPower;
+  state.score         += gained;
+  state.totalEarned   += gained;
+  state.totalClicks++;
+  state.levelProgress += gained;
+
+  checkLevelUp();
+  spawnFloat(e, '+' + fmt(gained));
+
+  const btn = document.getElementById('clickBtn');
+  btn.classList.add('clicked');
+  setTimeout(() => btn.classList.remove('clicked'), 120);
+
+  const sc = document.getElementById('scoreDisplay');
+  sc.style.transform = 'scale(1.06)';
+  setTimeout(() => sc.style.transform = '', 120);
+
+  playClick();
+  checkAchievements();
+  updateUI();
+  save();
+
+  // Уведомляем CrazyGames SDK о клике (для триггера мидрола)
+  document.dispatchEvent(new Event('voltclick'));
+}
+
+/* === ПОВЫШЕНИЕ УРОВНЯ === */
+function checkLevelUp() {
+  let thr = levelThreshold(state.level + 1);
+  while (state.levelProgress >= thr) {
+    state.levelProgress -= thr;
+    state.level++;
+    thr = levelThreshold(state.level + 1);
+    showToast('achievement', t('levelUpTitle'), t('levelUpBody', state.level));
+    playAchievement();
+  }
+}
+
+/* === ДОСТИЖЕНИЯ === */
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(ach => {
+    if (!state.achievements[ach.id] && ach.condition(state)) {
+      state.achievements[ach.id] = true;
+      showToast('achievement', t('achTitle'), ach.icon + ' ' + ach[currentLang]);
+      playAchievement();
+      if (document.getElementById('achievementsGrid').style.display !== 'none')
+        renderAchievements();
+    }
+  });
+}
+
+/* === ПЛАВАЮЩИЕ ЧИСЛА === */
+function spawnFloat(e, text) {
+  const el = document.createElement('div');
+  el.className = 'float-num';
+  el.textContent = text;
+  const x = e.clientX || (e.touches && e.touches[0].clientX) || window.innerWidth / 2;
+  const y = e.clientY || (e.touches && e.touches[0].clientY) || window.innerHeight / 2;
+  el.style.left = (x + Math.random() * 40 - 40) + 'px';
+  el.style.top  = (y - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+/* === TOAST === */
+function showToast(type, title, body) {
+  const c = document.getElementById('toastContainer');
+  const t_ = document.createElement('div');
+  t_.className = 'toast ' + type;
+  t_.innerHTML = `<div class="toast-title">${title}</div><div class="toast-body">${body}</div>`;
+  c.appendChild(t_);
+  setTimeout(() => t_.remove(), 3200);
+}
+
+/* === ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК === */
+let currentTab = 'upgrades';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabUpgrades').classList.toggle('active',     tab === 'upgrades');
+  document.getElementById('tabAchievements').classList.toggle('active', tab === 'achievements');
+  document.getElementById('panelTabLabel').textContent = t(tab === 'upgrades' ? 'upgradesTab' : 'achTab');
+
+  document.getElementById('upgradesList').style.display     = tab === 'upgrades'     ? 'flex'  : 'none';
+  document.getElementById('achievementsGrid').style.display = tab === 'achievements' ? 'grid'  : 'none';
+
+  if (tab === 'upgrades')     renderUpgrades();
+  else                        renderAchievements();
+}
+
+/* === АВТОДОХОД (каждую секунду) === */
+setInterval(() => {
+  if (state.autoIncome <= 0) return;
+  state.score         += state.autoIncome;
+  state.totalEarned   += state.autoIncome;
+  state.levelProgress += state.autoIncome;
+  checkLevelUp();
+  checkAchievements();
+  updateUI();
+}, 1000);
+
+/* Автосохранение каждые 5 сек */
+setInterval(save, 5000);
+
+/* === СОХРАНЕНИЕ === */
+function save() {
+  try { localStorage.setItem('voltclicker_save', JSON.stringify(state)); } catch(e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('voltclicker_save');
+    if (raw) { Object.assign(state, JSON.parse(raw)); recalcStats(); return true; }
+  } catch(e) {}
+  return false;
+}
+
+/* === СБРОС === */
+function confirmReset() {
+  if (!confirm(t('resetConfirm'))) return;
+  localStorage.removeItem('voltclicker_save');
+  state = { score:0, totalEarned:0, totalClicks:0, clickPower:1, autoIncome:0,
+            level:1, levelProgress:0, upgrades:{}, achievements:{} };
+  recalcStats(); updateUI();
+  showToast('purchase', t('resetTitle'), t('resetBody'));
+}
+
+/* =============================================
+   CRAZYGAMES SDK v3
+   Интеграция: реклама, пользователь, gameplay events
+   ============================================= */
+
+const CG = {
+  ready: false,       // SDK инициализирован
+  env: 'unknown',     // 'local' | 'crazygames' | 'disabled'
+  adPlaying: false,   // идёт ли реклама прямо сейчас
+  clicksSinceAd: 0,   // счётчик кликов между рекламами
+  AD_CLICK_INTERVAL: 80, // каждые N кликов показываем мидрол
+
+  /* Инициализация SDK */
+  async init() {
+    try {
+      await window.CrazyGames.SDK.init();
+      this.ready = true;
+      this.env   = window.CrazyGames.SDK.environment;
+      console.log('[CrazyGames] SDK ready, env:', this.env);
+
+      /* Показываем системную информацию */
+      const sysInfo = window.CrazyGames.SDK.user.systemInfo;
+      console.log('[CrazyGames] systemInfo:', sysInfo);
+
+      /* Слушаем happy time (бонусный режим от платформы) */
+      window.CrazyGames.SDK.game.on('happytime', () => {
+        this.onHappyTime();
+      });
+
+    } catch (e) {
+      console.warn('[CrazyGames] SDK init failed:', e);
+    }
+  },
+
+  /* Проверка: можно ли использовать SDK на этом окружении */
+  isAvailable() {
+    return this.ready && (this.env === 'local' || this.env === 'crazygames');
+  },
+
+  /* ——— LOADING ——— */
+  loadingStart() {
+    if (!this.isAvailable()) return;
+    try { window.CrazyGames.SDK.game.loadingStart(); } catch(e) {}
+  },
+
+  loadingStop() {
+    if (!this.isAvailable()) return;
+    try { window.CrazyGames.SDK.game.loadingStop(); } catch(e) {}
+  },
+
+  /* ——— GAMEPLAY ——— */
+  gameplayStart() {
+    if (!this.isAvailable()) return;
+    try { window.CrazyGames.SDK.game.gameplayStart(); } catch(e) {}
+  },
+
+  gameplayStop() {
+    if (!this.isAvailable()) return;
+    try { window.CrazyGames.SDK.game.gameplayStop(); } catch(e) {}
+  },
+
+  /* ——— РЕКЛАМА: Midroll (во время игры) ——— */
+  async showMidroll() {
+    if (!this.isAvailable() || this.adPlaying) return;
+    this.adPlaying = true;
+    this.gameplayStop();
+
+    // Замораживаем игру на время рекламы
+    setAdOverlay(true);
+
+    try {
+      await window.CrazyGames.SDK.ad.requestAd('midgame', {
+        adStarted:  () => { console.log('[CrazyGames] Midroll started'); },
+        adFinished: () => {
+          console.log('[CrazyGames] Midroll finished');
+          this._afterAd();
+        },
+        adError: (e) => {
+          console.warn('[CrazyGames] Midroll error:', e);
+          this._afterAd();
+        },
+      });
+    } catch(e) {
+      console.warn('[CrazyGames] requestAd error:', e);
+      this._afterAd();
+    }
+  },
+
+  /* ——— РЕКЛАМА: Rewarded (за вознаграждение) ——— */
+  async showRewarded(onReward) {
+    if (!this.isAvailable() || this.adPlaying) {
+      // Если SDK недоступен — всё равно дать награду (localhost/dev)
+      if (onReward) onReward();
+      return;
+    }
+    this.adPlaying = true;
+    this.gameplayStop();
+    setAdOverlay(true);
+
+    try {
+      await window.CrazyGames.SDK.ad.requestAd('rewarded', {
+        adStarted:  () => { console.log('[CrazyGames] Rewarded started'); },
+        adFinished: () => {
+          console.log('[CrazyGames] Rewarded finished — giving reward');
+          this._afterAd();
+          if (onReward) onReward();
+        },
+        adError: (e) => {
+          console.warn('[CrazyGames] Rewarded error:', e);
+          this._afterAd();
+        },
+      });
+    } catch(e) {
+      console.warn('[CrazyGames] requestAd rewarded error:', e);
+      this._afterAd();
+    }
+  },
+
+  /* Общий код после завершения рекламы */
+  _afterAd() {
+    this.adPlaying = false;
+    setAdOverlay(false);
+    this.gameplayStart();
+  },
+
+  /* ——— HAPPY TIME (бонусный режим) ——— */
+  onHappyTime() {
+    console.log('[CrazyGames] Happy Time!');
+    showToast('achievement', '🎉 Happy Time!',
+      currentLang === 'ru' ? 'Бонус x3 на 30 секунд!' : 'Bonus x3 for 30 seconds!');
+    activateHappyTime();
+  },
+
+  /* ——— ПОЛЬЗОВАТЕЛЬ ——— */
+  async getUser() {
+    if (!this.isAvailable()) return null;
+    try {
+      const user = await window.CrazyGames.SDK.user.getUser();
+      return user;
+    } catch(e) {
+      console.warn('[CrazyGames] getUser error:', e);
+      return null;
+    }
+  },
+
+  /* Счётчик кликов → авто мидрол */
+  onClickTick() {
+    this.clicksSinceAd++;
+    if (this.clicksSinceAd >= this.AD_CLICK_INTERVAL) {
+      this.clicksSinceAd = 0;
+      this.showMidroll();
+    }
+  },
+};
+
+/* ——— ОВЕРЛЕЙ ВО ВРЕМЯ РЕКЛАМЫ ——— */
+function setAdOverlay(show) {
+  let overlay = document.getElementById('adOverlay');
+  if (show) {
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'adOverlay';
+      overlay.style.cssText = `
+        position:fixed; inset:0; z-index:99999;
+        background:rgba(5,8,16,0.92);
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center; gap:16px;
+        backdrop-filter:blur(8px);
+      `;
+      overlay.innerHTML = `
+        <div style="font-family:'Orbitron',monospace;font-size:1rem;color:#00d4ff;
+          text-shadow:0 0 20px rgba(0,212,255,0.8);letter-spacing:0.15em;">
+          ⚡ VOLT CLICKER
+        </div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:0.85rem;
+          color:#4a6580;letter-spacing:0.1em;text-transform:uppercase;">
+          ${currentLang === 'ru' ? 'Реклама...' : 'Advertisement...'}
+        </div>
+        <div style="width:40px;height:40px;border:2px solid rgba(0,212,255,0.2);
+          border-top-color:#00d4ff;border-radius:50%;
+          animation:spin 0.8s linear infinite;">
+        </div>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+      `;
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+  } else if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+/* ——— HAPPY TIME БОНУС ——— */
+let happyTimeActive = false;
+let happyTimeTimer  = null;
+
+function activateHappyTime() {
+  happyTimeActive = true;
+  // Сохраняем оригинальный clickPower и временно утраиваем
+  const original = state.clickPower;
+  state.clickPower = original * 3;
+  updateUI();
+
+  clearTimeout(happyTimeTimer);
+  happyTimeTimer = setTimeout(() => {
+    state.clickPower = original;
+    happyTimeActive  = false;
+    updateUI();
+    showToast('purchase', '⏱️', currentLang === 'ru' ? 'Happy Time закончился' : 'Happy Time ended');
+  }, 30000);
+}
+
+/* ——— КНОПКА REWARDED AD ——— */
+/* Добавляем кнопку "Смотреть рекламу → x2 на 60 сек" в click-zone */
+function injectRewardedBtn() {
+  const zone = document.querySelector('.click-zone');
+  if (!zone || document.getElementById('rewardedBtn')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'rewardedBtn';
+  btn.style.cssText = `
+    background: transparent;
+    border: 1px solid rgba(123,47,255,0.35);
+    border-radius: 10px;
+    padding: 9px 20px;
+    color: #7b2fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    -webkit-tap-highlight-color: transparent;
+  `;
+  btn.innerHTML = `<span>📺</span><span id="rewardedBtnLabel">${currentLang === 'ru' ? 'Реклама → x2 на 60 сек' : 'Watch ad → x2 for 60s'}</span>`;
+  btn.onmouseover = () => {
+    btn.style.borderColor = 'rgba(123,47,255,0.7)';
+    btn.style.background  = 'rgba(123,47,255,0.08)';
+    btn.style.boxShadow   = '0 0 15px rgba(123,47,255,0.2)';
+  };
+  btn.onmouseout = () => {
+    btn.style.borderColor = 'rgba(123,47,255,0.35)';
+    btn.style.background  = 'transparent';
+    btn.style.boxShadow   = 'none';
+  };
+  btn.onclick = () => {
+    CG.showRewarded(() => {
+      // Награда: x2 к clickPower на 60 секунд
+      const base = state.clickPower;
+      state.clickPower = base * 2;
+      updateUI();
+      showToast('achievement', '📺 ' + (currentLang === 'ru' ? 'Награда!' : 'Reward!'),
+        currentLang === 'ru' ? '×2 к клику на 60 сек' : '×2 click power for 60s');
+      setTimeout(() => {
+        state.clickPower = base;
+        updateUI();
+        showToast('purchase', '⏱️', currentLang === 'ru' ? 'Бонус закончился' : 'Bonus ended');
+      }, 60000);
+    });
+  };
+  zone.appendChild(btn);
+}
+
+/* Обновляем текст кнопки rewarded при смене языка */
+function updateRewardedBtnLabel() {
+  const lbl = document.getElementById('rewardedBtnLabel');
+  if (lbl) lbl.textContent = currentLang === 'ru' ? 'Реклама → x2 на 60 сек' : 'Watch ad → x2 for 60s';
+}
+
+/* === ИНИЦИАЛИЗАЦИЯ === */
+async function init() {
+  // 1. Сигнализируем SDK что начинается загрузка
+  // (SDK ещё может не быть готов, поэтому сначала инициализируем)
+  await CG.init();
+  CG.loadingStart();
+
+  // 2. Загружаем сохранение и применяем язык
+  const hasSave = load();
+  applyLang();
+  if (hasSave) showToast('purchase', t('loadedTitle'), t('loadedBody'));
+
+  // 3. Вешаем события кнопки клика
+  const btn = document.getElementById('clickBtn');
+  btn.addEventListener('click', handleClick);
+  btn.addEventListener('touchstart', e => { e.preventDefault(); handleClick(e); }, { passive: false });
+
+  // 4. Счётчик кликов для мидрол-рекламы
+  document.addEventListener('voltclick', () => CG.onClickTick());
+
+  // 4. Первичный рендер
+  updateUI();
+  renderAchievements();
+
+  // 5. Инжектируем кнопку rewarded
+  injectRewardedBtn();
+
+  // 6. Сообщаем SDK что загрузка завершена
+  CG.loadingStop();
+
+  // 7. Сообщаем что геймплей начался
+  CG.gameplayStart();
+
+  console.log('[CrazyGames] Game ready. Env:', CG.env);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
