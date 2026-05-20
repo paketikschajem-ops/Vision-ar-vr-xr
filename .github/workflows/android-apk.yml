@@ -1,4 +1,4 @@
-name: Android APK (Vision XR)
+name: Build APK
 
 on:
   workflow_dispatch:
@@ -16,13 +16,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Capacitor
+        run: npm install -g @capacitor/cli @capacitor/android
 
-      - name: Install Capacitor CLI
-        run: npm install -g @capacitor/cli
+      # 👉 создаём Android проект ЕСЛИ его нет
+      - name: Init Capacitor project
+        run: npx cap init "XR Vision" com.xr.app
 
-      - name: Sync Capacitor (create android if missing)
+      - name: Add Android platform (only first time)
+        run: npx cap add android || true
+
+      - name: Copy web assets
+        run: npx cap copy android
+
+      - name: Sync project
         run: npx cap sync android
 
       - name: Setup Android SDK
@@ -37,5 +44,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: vision-xr-apk
+          name: app-debug
           path: android/app/build/outputs/apk/debug/*.apk
