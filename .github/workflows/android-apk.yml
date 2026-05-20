@@ -1,4 +1,4 @@
-name: Build APK
+name: FusionAR APK Build
 
 on:
   workflow_dispatch:
@@ -8,46 +8,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - run: npm install -g @capacitor/cli @capacitor/android
 
-      - name: Install Capacitor CLI
-        run: npm install -g @capacitor/cli
+      - run: npx cap init "FusionAR" com.fusion.ar
 
-      - name: Init Capacitor (safe)
-        run: npx cap init "Vision XR" com.vision.xr
+      - run: npx cap add android || true
 
-      # 🔥 КЛЮЧЕВОЙ ФИКС — install android platform BEFORE sync
-      - name: Add Android platform
-        run: |
-          npm install @capacitor/android
-          npx cap add android || true
+      - run: npx cap copy android
 
-      - name: Copy web assets
-        run: npx cap copy android
+      - run: npx cap sync android
 
-      - name: Sync project
-        run: npx cap sync android
+      - uses: android-actions/setup-android@v3
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Build APK
-        run: |
+      - run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: vision-xr-apk
+          name: FusionAR-APK
           path: android/app/build/outputs/apk/debug/*.apk
