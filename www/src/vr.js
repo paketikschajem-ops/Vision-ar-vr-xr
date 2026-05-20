@@ -1,12 +1,4 @@
-let vrEnabled = false;
-
-function enableVR() {
-  vrEnabled = true;
-}
-
-function renderStereo(renderer, scene, camera) {
-  if (!vrEnabled) return;
-
+function stereo(renderer, scene, camera) {
   const w = window.innerWidth / 2;
   const h = window.innerHeight;
 
