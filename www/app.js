@@ -40,12 +40,7 @@ function init() {
     objects.push(cube);
   }
 
-  // 🧩 spatial UI
-  for (let i = 0; i < 3; i++) {
-    createWindow(scene);
-  }
-
-  // expose global XR state
+  // expose XR state
   window.XR = { scene, camera, objects };
 }
 
@@ -53,10 +48,11 @@ function animate() {
   requestAnimationFrame(animate);
 
   updateGyro(camera);
-  updateWindows();
+  updateWindows?.();
 
   if (window.handLandmarks) {
     updateGestures(window.handLandmarks, window.XR.objects, window.XR.scene);
+    updateAnchors?.(window.handLandmarks, window.XR.scene);
   }
 
   renderer.render(scene, camera);
