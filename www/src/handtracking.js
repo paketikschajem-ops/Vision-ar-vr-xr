@@ -12,7 +12,9 @@ hands.setOptions({
   minTrackingConfidence: 0.7
 });
 
-hands.onResults(onHands);
+hands.onResults((results) => {
+  window.handLandmarks = results.multiHandLandmarks?.[0] || null;
+});
 
 const cam = new Camera(video, {
   onFrame: async () => {
@@ -23,16 +25,3 @@ const cam = new Camera(video, {
 });
 
 cam.start();
-
-function onHands(results) {
-  if (!results.multiHandLandmarks) return;
-
-  results.multiHandLandmarks.forEach((h) => {
-    const pinch = Math.hypot(h[8].x - h[4].x, h[8].y - h[4].y);
-
-    if (pinch < 0.05) {
-      document.body.style.filter = "brightness(1.2)";
-      setTimeout(() => document.body.style.filter = "", 80);
-    }
-  });
-}
