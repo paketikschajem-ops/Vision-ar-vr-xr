@@ -1,13 +1,15 @@
-function createPanel(text) {
+function panel(text, x, y) {
   const el = document.createElement("div");
+
   el.className = "glass";
   el.innerText = text;
 
-  el.style.left = Math.random() * 200 + "px";
-  el.style.top = Math.random() * 400 + "px";
+  el.style.left = x + "px";
+  el.style.top = y + "px";
 
   document.getElementById("ui").appendChild(el);
 }
 
-createPanel("Vision XR UI");
-createPanel("Hand Tracking Active");
+panel("🧠 XR Ready", 50, 80);
+panel("✋ Hands ON", 50, 160);
+panel("🥽 Cardboard OK", 50, 240);
