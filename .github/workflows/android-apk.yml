@@ -1,4 +1,4 @@
-name: FusionAR APK Build
+name: FusionAR APK
 
 on:
   workflow_dispatch:
@@ -8,30 +8,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install -g @capacitor/cli @capacitor/android
+      # install dependencies from package.json
+      - name: Install packages
+        run: npm install
 
-      - run: npx cap init "FusionAR" com.fusion.ar
+      # install capacitor android
+      - name: Install Capacitor Android
+        run: npm install @capacitor/android
 
-      - run: npx cap add android || true
+      # init capacitor if missing
+      - name: Init Capacitor
+        run: |
+          npx cap init FusionAR com.fusion.ar --web-dir=www || true
 
-      - run: npx cap copy android
+      # ADD ANDROID PLATFORM
+      - name: Add Android platform
+        run: |
+          npx cap add android || true
 
-      - run: npx cap sync android
+      # NOW sync/copy works
+      - name: Sync Capacitor
+        run: |
+          npx cap sync android
 
-      - uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - run: |
+      - name: Build APK
+        run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: FusionAR-APK
           path: android/app/build/outputs/apk/debug/*.apk
