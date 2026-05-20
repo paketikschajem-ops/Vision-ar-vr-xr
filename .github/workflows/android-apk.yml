@@ -16,15 +16,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Capacitor
-        run: npm install -g @capacitor/cli @capacitor/android
+      - name: Install dependencies
+        run: npm install
 
-      # 👉 создаём Android проект ЕСЛИ его нет
-      - name: Init Capacitor project
-        run: npx cap init "XR Vision" com.xr.app
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli
 
-      - name: Add Android platform (only first time)
-        run: npx cap add android || true
+      - name: Init Capacitor (safe)
+        run: npx cap init "Vision XR" com.vision.xr
+
+      # 🔥 КЛЮЧЕВОЙ ФИКС — install android platform BEFORE sync
+      - name: Add Android platform
+        run: |
+          npm install @capacitor/android
+          npx cap add android || true
 
       - name: Copy web assets
         run: npx cap copy android
@@ -44,5 +49,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: vision-xr-apk
           path: android/app/build/outputs/apk/debug/*.apk
