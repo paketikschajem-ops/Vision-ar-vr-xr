@@ -5,26 +5,47 @@ body {
   font-family: system-ui;
 }
 
+/* camera passthrough */
 #camera {
-  position: absolute;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.6);
+  z-index: 0;
+  filter: brightness(0.75);
 }
 
+/* XR canvas */
 #scene {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
+/* spatial menu */
+#menu {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+}
+
+/* glass UI */
 .glass {
-  position: absolute;
-  padding: 12px;
-  border-radius: 16px;
   background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 22px;
+  padding: 18px;
   color: white;
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 0 30px rgba(0,255,255,0.15),
+    inset 0 0 12px rgba(255,255,255,0.08);
+}
+
+.panel {
+  width: 220px;
 }
