@@ -1,4 +1,4 @@
-name: Android APK
+name: Android APK (Vision XR)
 
 on:
   workflow_dispatch:
@@ -8,24 +8,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node (only for Capacitor CLI)
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Check files (DEBUG FIX)
-        run: ls -R
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli @capacitor/android
 
-      - name: Install dependencies
-        run: npm install
+      - name: Init Capacitor if missing
+        run: |
+          if [ ! -f capacitor.config.json ]; then
+            npx cap init vision-xr com.vision.xr
+          fi
 
-      - name: Sync Capacitor
+      - name: Add Android platform if missing
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+
+      - name: Sync web assets
         run: npx cap sync android
 
-      - name: Setup Android
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Build APK
