@@ -1,11 +1,11 @@
 let scene, camera, renderer;
-
-let objects = [];
+let cubes = [];
 
 init();
 animate();
 
 function init() {
+
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera(
@@ -23,37 +23,66 @@ function init() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  // 🧊 objects
-  for (let i = 0; i < 6; i++) {
+  // LIGHT
+  const light = new THREE.PointLight(0xffffff, 2);
+  light.position.set(0, 2, 2);
+  scene.add(light);
+
+  // floating cubes
+  for (let i = 0; i < 8; i++) {
+
     const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(0.2, 0.2, 0.2),
-      new THREE.MeshNormalMaterial()
+      new THREE.BoxGeometry(0.25, 0.25, 0.25),
+      new THREE.MeshStandardMaterial({
+        color: 0x00ffff,
+        metalness: 0.6,
+        roughness: 0.2
+      })
     );
 
     cube.position.set(
       Math.random() * 2 - 1,
-      Math.random() * 1.5 - 0.5,
-      -1.5 - Math.random()
+      Math.random() * 2 - 1,
+      -2 - Math.random() * 2
     );
 
     scene.add(cube);
-    objects.push(cube);
+    cubes.push(cube);
   }
 
-  // expose XR state
-  window.XR = { scene, camera, objects };
+  // spatial windows
+  if (typeof createWindow === "function") {
+    for (let i = 0; i < 3; i++) {
+      createWindow(scene);
+    }
+  }
+
+  window.XR = {
+    scene,
+    camera,
+    cubes
+  };
 }
 
 function animate() {
+
   requestAnimationFrame(animate);
 
-  updateGyro(camera);
-  updateWindows?.();
-
-  if (window.handLandmarks) {
-    updateGestures(window.handLandmarks, window.XR.objects, window.XR.scene);
-    updateAnchors?.(window.handLandmarks, window.XR.scene);
+  // gyro
+  if (typeof updateGyro === "function") {
+    updateGyro(camera);
   }
+
+  // floating windows
+  if (typeof updateWindows === "function") {
+    updateWindows();
+  }
+
+  // cube animation
+  cubes.forEach(c => {
+    c.rotation.x += 0.01;
+    c.rotation.y += 0.01;
+  });
 
   renderer.render(scene, camera);
 }
