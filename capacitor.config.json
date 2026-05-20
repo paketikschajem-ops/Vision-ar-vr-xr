@@ -1,6 +1,6 @@
 {
-  "appId": "com.vision.xr",
-  "appName": "Vision XR",
+  "appId": "com.xr.app",
+  "appName": "XR Vision",
   "webDir": "www",
   "bundledWebRuntime": false
 }
