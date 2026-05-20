@@ -7,7 +7,7 @@ const hands = new Hands({
 
 hands.setOptions({
   maxNumHands: 2,
-  modelComplexity: 1,
+  modelComplexity: 0,
   minDetectionConfidence: 0.7,
   minTrackingConfidence: 0.7
 });
@@ -18,8 +18,8 @@ const cam = new Camera(video, {
   onFrame: async () => {
     await hands.send({ image: video });
   },
-  width: 1280,
-  height: 720
+  width: 640,
+  height: 480
 });
 
 cam.start();
@@ -27,17 +27,12 @@ cam.start();
 function onHands(results) {
   if (!results.multiHandLandmarks) return;
 
-  results.multiHandLandmarks.forEach((hand) => {
-    const index = hand[8];
-    const thumb = hand[4];
-
-    const pinch = Math.hypot(
-      index.x - thumb.x,
-      index.y - thumb.y
-    );
+  results.multiHandLandmarks.forEach((h) => {
+    const pinch = Math.hypot(h[8].x - h[4].x, h[8].y - h[4].y);
 
     if (pinch < 0.05) {
-      console.log("PINCH");
+      document.body.style.filter = "brightness(1.2)";
+      setTimeout(() => document.body.style.filter = "", 80);
     }
   });
 }
