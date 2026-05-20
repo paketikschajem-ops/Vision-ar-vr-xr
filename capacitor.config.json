@@ -1,6 +1,6 @@
 {
-  "appId": "com.xr.app",
-  "appName": "XR Vision",
+  "appId": "com.fusion.ar",
+  "appName": "FusionAR",
   "webDir": "www",
   "bundledWebRuntime": false
 }
